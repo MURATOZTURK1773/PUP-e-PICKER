@@ -30,6 +30,7 @@ body {
   align-items: center;
   margin: 0px;
   padding: 0px;
+  background-color: skyblue;
 }
 
 #create-dog-form {
@@ -98,6 +99,20 @@ body {
   color: white;
 }
 
+#main-section-primary {
+  overflow-y: auto;
+  border: 2px solid black;
+  background-color: black;
+  width: 80%;
+  height: 90%;
+  display: flex;
+  flex: 12;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0px;
+}
+
 #main-section {
   border: 2px solid black;
   background-color: black;
@@ -133,7 +148,10 @@ body {
   flex-wrap: wrap;
   justify-content: space-around;
   flex: 23;
-  overflow-y: auto;
+}
+
+.content-container-1 {
+  overflow: auto;
 }
 
 .dog-card {
@@ -380,4 +398,8 @@ h1 > .four,
 h1 > .five,
 .ten {
   color: palevioletred;
+}
+
+.app-section {
+  display: flex;
 }

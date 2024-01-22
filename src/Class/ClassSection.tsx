@@ -1,6 +1,8 @@
 // you can use `ReactNode` to add a type to the children prop
 import { Component, ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { ClassDogs } from "./ClassDogs";
+import { ClassCreateDogForm } from "./ClassCreateDogForm";
 
 export class ClassSection extends Component {
   render() {
@@ -28,7 +30,10 @@ export class ClassSection extends Component {
             </div>
           </div>
         </div>
-        <div className="content-container"></div>
+        <div className="content-container">
+          <ClassDogs children />
+          <ClassCreateDogForm children />
+        </div>
       </section>
     );
   }

@@ -13,8 +13,8 @@ export class ClassApp extends Component {
         <ClassSection />
 
         {/* should be inside of the ClassSection component using react children */}
-        <ClassDogs />
-        <ClassCreateDogForm />
+        <ClassDogs children />
+        <ClassCreateDogForm children />
       </div>
     );
   }

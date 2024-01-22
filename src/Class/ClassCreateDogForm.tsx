@@ -1,7 +1,11 @@
 import { Component } from "react";
 import { dogPictures } from "../dog-pictures";
 
-export class ClassCreateDogForm extends Component {
+interface ClassCreateDogFormProps {
+  children: React.ReactNode;
+}
+
+export class ClassCreateDogForm extends Component<ClassCreateDogFormProps> {
   render() {
     return (
       <form
@@ -32,6 +36,7 @@ export class ClassCreateDogForm extends Component {
               </option>
             );
           })}
+          {this.props.children}
         </select>
         <input type="submit" value="submit" disabled={false} />
       </form>
