@@ -5,11 +5,13 @@ import { FunctionalSection } from "./FunctionalSection";
 import { Dog } from "../types";
 import { Requests } from "../api";
 import { FunctionalDogsProps } from "./FunctionalDogs";
+import { SectionLayout } from "../Layouts/SectionalLayout";
+import { FunctionalCreateDogForm } from "./FunctionalCreateDogForm";
 
 export function FunctionalApp(props: FunctionalDogsProps) {
   const [allDogs, setAllDogs] = useState<Dog[]>([]);
-  const [isloading, setIsLoading] = useState<boolean>(false);
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState("");
   useEffect(() => {
     setIsLoading(true);
     refetchData()
@@ -37,12 +39,12 @@ export function FunctionalApp(props: FunctionalDogsProps) {
 
   const updateDog = (dog: Dog) => {
     setIsLoading(true);
-    Requests.updateDogFavoriteStatus({
+    return Requests.updateDogFavoriteStatus({
       id: dog.id,
       isFavorite: dog.isFavorite,
     })
       .then(() => {
-        refetchData();
+        return refetchData();
       })
       .catch((error) => {
         console.error("Error updating dog:", error);
@@ -60,39 +62,19 @@ export function FunctionalApp(props: FunctionalDogsProps) {
     Requests.deleteDog(id).then(refetchData);
   };
 
-  const handleHeartClick = (id: number, isFavorite: boolean) => {
-    const dog = allDogs.find((dog) => dog.id === id);
-    if (dog) {
-      const updatedDog = { ...dog, isFavorite: !dog.isFavorite };
-      console.log("Updated Dog:", updatedDog);
-
-      setIsLoading(true);
-
-      Requests.updateDogFavoriteStatus({
-        id: id,
-        isFavorite: isFavorite,
-      })
-        .then((updatedDog) => {
-          refetchData();
-
-          setAllDogs((dogs) =>
-            dogs.map((dog) => (dog.id === updatedDog.id ? updatedDog : dog))
-          );
-          console.log("All Dogs:", allDogs);
-        })
-        .catch((error) => {
-          console.error("Error updating dog:", error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
+  const handleHeartClick = async (id: number, isFavorite: boolean) => {
+    return Requests.updateDogFavoriteStatus({
+      id: id,
+      isFavorite: isFavorite,
+    }).then(() => {
+      refetchData();
+    });
   };
 
-  const favoritedDogsCount = isloading
+  const favoritedDogsCount = isLoading
     ? 0
     : allDogs.filter((dog) => dog.isFavorite).length;
-  const unfavoritedDogsCount = isloading
+  const unfavoritedDogsCount = isLoading
     ? 0
     : allDogs.filter((dog) => !dog.isFavorite).length;
 
@@ -108,9 +90,14 @@ export function FunctionalApp(props: FunctionalDogsProps) {
         favoritedCount={favoritedDogsCount}
         unfavoritedCount={unfavoritedDogsCount}
         dogs={allDogs}
-        handleToggleFavorite={handleHeartClick}
-        isLoading={isloading}
-        children
+        handleHeartClick={handleHeartClick}
+        isLoading={isLoading}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        setAllDogs={setAllDogs}
+        allDogs={allDogs}
+        onEmptyHeartClick={handleHeartClick}
+        onHeartClick={handleHeartClick}
       />
     </div>
   );

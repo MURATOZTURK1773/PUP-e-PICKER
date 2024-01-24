@@ -26,16 +26,19 @@ export const Requests = {
     });
   },
 
-  updateDogFavoriteStatus: (
-    dog: Partial<Omit<Dog, "id">> & { id: number; isFavorite: boolean }
-  ): Promise<Dog> => {
-    const { id, ...partialDog } = dog;
+  updateDogFavoriteStatus: (dog: Partial<Dog>): Promise<void | Dog> => {
+    const { id } = dog;
     return fetch(`${baseUrl}/dogs/${id}`, {
-      body: JSON.stringify(partialDog),
+      body: JSON.stringify({ isFavorite: dog.isFavorite }),
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-    }).then((response) => response.json());
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(id, dog.isFavorite);
+        console.log(data);
+      });
   },
 };

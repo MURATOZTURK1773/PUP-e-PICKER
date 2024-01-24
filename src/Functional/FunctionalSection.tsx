@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { FunctionalDogs } from "./FunctionalDogs";
 import { FunctionalCreateDogForm } from "./FunctionalCreateDogForm";
 import { Dog } from "../types";
 import { SectionLayout } from "../Layouts/SectionalLayout";
-import { DogCard } from "../Shared/DogCard";
+import { Requests } from "../api";
 
 interface FunctionalSectionProps {
   favoritedCount: number;
@@ -13,64 +13,76 @@ interface FunctionalSectionProps {
   createDog: (dog: Omit<Dog, "id">) => void;
   deleteDog: (id: number) => void;
   dogs?: Dog[];
-  children: React.ReactNode;
-  handleToggleFavorite: (id: number, isFavorite: boolean) => void;
+  handleHeartClick: (id: number, isFavorite: boolean) => void;
   isLoading: boolean;
+  activeTab: string;
+  setActiveTab: React.Dispatch<React.SetStateAction<string>>;
+  allDogs: Dog[];
+  setAllDogs: React.Dispatch<React.SetStateAction<Dog[]>>;
+  onHeartClick: (id: number, isFavorite: boolean) => void;
+  onEmptyHeartClick: (id: number, isFavorite: boolean) => void;
 }
 
-export const FunctionalSection: React.FC<FunctionalSectionProps> = ({
-  updateDog,
-  createDog,
-  deleteDog,
-  dogs,
-  favoritedCount,
-  unfavoritedCount,
-  handleToggleFavorite,
-  isLoading,
-}) => {
-  // console.log("Received dogs prop:", dogs);
+export const FunctionalSection: React.FC<FunctionalSectionProps> = (
+  props: FunctionalSectionProps
+) => {
+  // const refetchDataCallback = useCallback(() => {
+  //   return Requests.getAllDogs().then((dogs) => {
+  //     props.setAllDogs(dogs);
+  //     return dogs;
+  //   });
+  // }, [props.onEmptyHeartClick, props.onHeartClick]);
+  const refetchData = () => {
+    return Requests.getAllDogs()
+      .then((dogs) => {
+        props.setAllDogs(dogs);
+        return dogs;
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        throw error;
+      });
+  };
 
-  const [activeTab, setActiveTab] = useState("");
-  const [renderDogs, setRenderDogs] = useState<Dog[]>(dogs ?? []);
+  const handleToggleFavorite = async (id: number, isFavorite: boolean) => {
+    try {
+      await Requests.updateDogFavoriteStatus({
+        id: id,
+        isFavorite: !isFavorite,
+      })
+        // const updatedDogs = await refetchData();
+        // props.setAllDogs(updatedDogs);
+        .then(() => {
+          refetchData();
+        });
+    } catch (error) {
+      console.error("Error updating dog favorite status:", error);
+    }
+    console.log(props.activeTab);
+  };
 
   const handleTabClick = (tab: string) => {
-    const favoritedDogs = dogs?.filter((dog) => dog.isFavorite) || [];
-    const unfavoritedDogs = dogs?.filter((dog) => !dog.isFavorite) || [];
+    const favoritedDogs = props.dogs?.filter((dog) => dog.isFavorite) || [];
+    const unfavoritedDogs = props.dogs?.filter((dog) => !dog.isFavorite) || [];
 
-    // console.log("Favorited Dogs:", favoritedDogs);
-    // console.log("Unfavorited Dogs:", unfavoritedDogs);
-
-    setActiveTab((prevTab) => (prevTab === tab ? "" : tab));
+    props.setActiveTab((prevTab) => (prevTab === tab ? "" : tab));
 
     switch (tab) {
       case "favorited":
-        setRenderDogs(
-          favoritedDogs.map((dog) => ({
-            ...dog,
-            onTrashIconClick: () => deleteDog(dog.id),
-            onHeartClick: () => handleToggleFavorite(dog.id, false),
-            onEmptyHeartClick: () => handleToggleFavorite(dog.id, true),
-          }))
-        );
-        // console.log("render dogs:", renderDogs);
-
+        //    setRenderDogs(favoritedDogs);
+        props.setAllDogs(favoritedDogs);
         break;
       case "unfavorited":
-        setRenderDogs(
-          unfavoritedDogs.map((dog) => ({
-            ...dog,
-            onEmptyHeartClick: () => handleToggleFavorite(dog.id, true),
-            onHeartClick: () => handleToggleFavorite(dog.id, false),
-            onTrashIconClick: () => deleteDog(dog.id),
-          }))
-        );
-
+        //    setRenderDogs(unfavoritedDogs);
+        props.setAllDogs(unfavoritedDogs);
         break;
       case "create dog":
-        setRenderDogs([]);
+        //    setRenderDogs([]);
+        props.setAllDogs([]);
         break;
       default:
-        setRenderDogs(dogs || []);
+        //    setRenderDogs(dogs || []);
+        props.setAllDogs(props.dogs || []);
         break;
     }
   };
@@ -85,22 +97,26 @@ export const FunctionalSection: React.FC<FunctionalSectionProps> = ({
 
         <div className="selectors">
           <div
-            className={`selector ${activeTab === "favorited" ? "active" : ""}`}
+            className={`selector ${
+              props.activeTab === "favorited" ? "active" : ""
+            }`}
             onClick={() => handleTabClick("favorited")}
           >
-            favorited ( {favoritedCount} )
+            favorited ( {props.favoritedCount} )
           </div>
 
           <div
             className={`selector ${
-              activeTab === "unfavorited" ? "active" : ""
+              props.activeTab === "unfavorited" ? "active" : ""
             }`}
             onClick={() => handleTabClick("unfavorited")}
           >
-            unfavorited ( {unfavoritedCount} )
+            unfavorited ( {props.unfavoritedCount} )
           </div>
           <div
-            className={`selector ${activeTab === "create dog" ? "active" : ""}`}
+            className={`selector ${
+              props.activeTab === "create dog" ? "active" : ""
+            }`}
             onClick={() => handleTabClick("create dog")}
           >
             create dog
@@ -109,50 +125,56 @@ export const FunctionalSection: React.FC<FunctionalSectionProps> = ({
       </div>
       <div className="content-container">
         <div>
-          {activeTab !== "favorited" &&
-            activeTab !== "unfavorited" &&
-            activeTab !== "create dog" && (
+          {props.activeTab !== "favorited" &&
+            props.activeTab !== "unfavorited" &&
+            props.activeTab !== "create dog" && (
               <SectionLayout>
                 <FunctionalDogs
-                  updateDog={updateDog}
-                  deleteDog={deleteDog}
+                  updateDog={props.updateDog}
+                  deleteDog={props.deleteDog}
                   onHeartClick={handleToggleFavorite}
                   onEmptyHeartClick={handleToggleFavorite}
-                  dogs={dogs}
-                  isLoading={isLoading}
+                  dogs={props.dogs}
+                  isLoading={props.isLoading}
+                  activeTab="activeTab"
+                  setActiveTab={props.setActiveTab}
                 />
               </SectionLayout>
             )}
 
-          {activeTab === "favorited" && (
+          {props.activeTab === "favorited" && (
             <SectionLayout>
               <FunctionalDogs
-                updateDog={updateDog}
-                deleteDog={deleteDog}
+                updateDog={props.updateDog}
+                deleteDog={props.deleteDog}
                 onHeartClick={handleToggleFavorite}
                 onEmptyHeartClick={handleToggleFavorite}
-                dogs={renderDogs}
-                isLoading={isLoading}
+                dogs={props.dogs}
+                isLoading={props.isLoading}
+                activeTab="activeTab"
+                setActiveTab={props.setActiveTab}
               />
             </SectionLayout>
           )}
 
-          {activeTab === "unfavorited" && (
+          {props.activeTab === "unfavorited" && (
             <SectionLayout>
               <FunctionalDogs
-                updateDog={updateDog}
-                deleteDog={deleteDog}
+                updateDog={props.updateDog}
+                deleteDog={props.deleteDog}
                 onHeartClick={handleToggleFavorite}
                 onEmptyHeartClick={handleToggleFavorite}
-                dogs={renderDogs}
-                isLoading={isLoading}
+                dogs={props.dogs}
+                isLoading={props.isLoading}
+                activeTab="activeTab"
+                setActiveTab={props.setActiveTab}
               />
             </SectionLayout>
           )}
 
-          {activeTab === "create dog" && (
+          {props.activeTab === "create dog" && (
             <SectionLayout>
-              <FunctionalCreateDogForm createDog={createDog} />
+              <FunctionalCreateDogForm createDog={props.createDog} />
             </SectionLayout>
           )}
         </div>

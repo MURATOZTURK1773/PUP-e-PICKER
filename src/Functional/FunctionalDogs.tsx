@@ -1,6 +1,6 @@
 import React from "react";
 import { DogCard } from "../Shared/DogCard";
-import { dogPictures } from "../dog-pictures";
+// import { dogPictures } from "../dog-pictures";
 import { Dog } from "../types";
 
 export interface FunctionalDogsProps {
@@ -10,6 +10,8 @@ export interface FunctionalDogsProps {
   onHeartClick: (id: number, isFavorite: boolean) => void;
   onEmptyHeartClick: (id: number, isFavorite: boolean) => void;
   isLoading: boolean;
+  activeTab: string;
+  setActiveTab: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const FunctionalDogs: React.FC<FunctionalDogsProps> = ({
@@ -42,7 +44,7 @@ export const FunctionalDogs: React.FC<FunctionalDogsProps> = ({
         "isFavorite:",
         !isFavorite
       );
-      await onHeartClick(id, isFavorite);
+      await onHeartClick(id, !isFavorite);
     }
   };
   return (
@@ -56,7 +58,7 @@ export const FunctionalDogs: React.FC<FunctionalDogsProps> = ({
               onTrashIconClick={() => deleteDog(dog.id)}
               onHeartClick={() => handleToggleFavorite(dog.id, dog.isFavorite)}
               onEmptyHeartClick={() =>
-                handleToggleFavorite(dog.id, !dog.isFavorite)
+                handleToggleFavorite(dog.id, dog.isFavorite)
               }
               isLoading={isLoading}
             />
